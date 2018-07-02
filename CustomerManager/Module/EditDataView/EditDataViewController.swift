@@ -23,7 +23,7 @@ class EditDataViewController: UIViewController, MyCollectionViewDelegate{
     var barButton: UIBarButtonItem!
     var fullScreenSize: CGSize!
     var collectionView:UICollectionView!
-    var delegate:EditDataDelegate!
+    weak var delegate: EditDataDelegate!
     var viewModel: EditDataViewModel!
     var id: Int!
     
@@ -54,11 +54,16 @@ class EditDataViewController: UIViewController, MyCollectionViewDelegate{
     }
     
     func initViewModel() {
-        viewModel.dataUpdateClosure = {
-            self.navigationController?.popViewController(animated: true)
+        viewModel.dataUpdateClosure = { [weak self] () in
+            self?.navigationController?.popViewController(animated: true)
         }
-        viewModel.reloadCollectionViewClosure = {
-            self.collectionView.reloadData()
+        viewModel.reloadCollectionViewClosure = { [weak self] () in
+            self?.collectionView.reloadData()
+        }
+        viewModel.errorClosure = { [weak self] () in
+            if let message = self?.viewModel.alertMessage {
+                self?.showAlert(message)
+            }
         }
     }
     
@@ -146,6 +151,11 @@ class EditDataViewController: UIViewController, MyCollectionViewDelegate{
         self.present(alert, animated: true, completion: nil)
     }
     
+    func showAlert(_ message: String) {
+        let alert = UIAlertController(title: "警告", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
 }
 
 extension EditDataViewController: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -169,7 +179,7 @@ extension EditDataViewController: UICollectionViewDelegate, UICollectionViewData
         } else{
             DispatchQueue.main.async {
                 cell.imageView.image = self.viewModel.getImage(at: (indexPath.item - 1)).image
-                
+
             }
             cell.titleLabel.text = "0\(indexPath.item)"
             cell.deleteButton.isHidden = false

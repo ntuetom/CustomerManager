@@ -25,6 +25,7 @@
 		51B37DC32062387D00DC886F /* MyCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51B37DC22062387D00DC886F /* MyCollectionViewCell.swift */; };
 		51B37DC52066159E00DC886F /* UIViewController_ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51B37DC42066159E00DC886F /* UIViewController_ext.swift */; };
 		51C6B73F208B7FD900DF56FB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51C6B741208B7FD900DF56FB /* Localizable.strings */; };
+		B5F8B5A520EA28520080AB86 /* FileContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F8B5A420EA28520080AB86 /* FileContainer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		51C6B73C208B7F8800DF56FB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		51C6B740208B7FD900DF56FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		51C6B742208B7FE400DF56FB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		B5F8B5A420EA28520080AB86 /* FileContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileContainer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +90,7 @@
 			children = (
 				518DDFD820E36C7D0046A891 /* TableView */,
 				518DDFD720E36C5E0046A891 /* EditDataView */,
+				B5F8B5A420EA28520080AB86 /* FileContainer.swift */,
 			);
 			path = Module;
 			sourceTree = "<group>";
@@ -282,6 +285,7 @@
 				518DDFD620E36B750046A891 /* EditDataViewModel.swift in Sources */,
 				516926672079147B00134A67 /* DataController.swift in Sources */,
 				51B37DBB205ED3BC00DC886F /* CustomerCell.swift in Sources */,
+				B5F8B5A520EA28520080AB86 /* FileContainer.swift in Sources */,
 				51B37DC52066159E00DC886F /* UIViewController_ext.swift in Sources */,
 				51B37D96205EAC9700DC886F /* AppDelegate.swift in Sources */,
 				51A5E16C20E25224000EB919 /* Array+Data_Extention.swift in Sources */,
@@ -451,7 +455,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = U9E4UTEYPL;
+				DEVELOPMENT_TEAM = U79L9MP8GY;
 				INFOPLIST_FILE = CustomerManager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Studio.CustomerManager;
@@ -466,7 +470,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = U9E4UTEYPL;
+				DEVELOPMENT_TEAM = U79L9MP8GY;
 				INFOPLIST_FILE = CustomerManager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Studio.CustomerManager;

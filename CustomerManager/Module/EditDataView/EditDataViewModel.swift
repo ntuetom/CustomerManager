@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-protocol EditDataDelegate {
+protocol EditDataDelegate: AnyObject {
     func onDataChange(newData data: CustomerData)
 }
 
@@ -17,6 +17,7 @@ class EditDataViewModel {
     
     let dataController: DataController
     var customerData: CustomerData!
+    
     private var saveImages: [UIImageView] = {
         return [UIImageView]()
     }() {
@@ -24,13 +25,24 @@ class EditDataViewModel {
             reloadCollectionViewClosure?()
         }
     }
+    
+    var alertMessage: String? {
+        didSet {
+            self.errorClosure?()
+        }
+    }
+    
     var errorClosure: (()->())?
     var dataUpdateClosure: (()->())?
     var reloadCollectionViewClosure: (()->())?
-    var delegate: EditDataDelegate?
+    weak var delegate: EditDataDelegate?
     
     var numberOfImages: Int {
         return saveImages.count
+    }
+    
+    deinit {
+        print("deinit EditDataViewModel")
     }
     
     init (dataId id: Int, toDelegate: EditDataDelegate) {
@@ -60,6 +72,14 @@ class EditDataViewModel {
     }
     
     func updateData(tel: String, name: String) {
+        guard name != "" else {
+            alertMessage = "Please fill the Name info"
+            return
+        }
+        guard tel != "" else {
+            alertMessage = "Please fill the Tel info"
+            return
+        }
         let passData:CustomerData
         
         var photos: [UIImage] = []

@@ -16,12 +16,12 @@ extension Array where Element: UIImage {
         let CDataArray = NSMutableArray()
         
         for img in self {
-            guard let imageRepresentation = UIImagePNGRepresentation(img) else {
+            
+            guard let imageRepresentation = UIImagePNGRepresentation(img.rotateImage()) else {
                 print("Unable to represent image as PNG")
                 return nil
             }
-            let data : NSData = NSData(data: imageRepresentation)
-            CDataArray.add(data)
+            CDataArray.add(imageRepresentation)
         }
         
         return NSKeyedArchiver.archivedData(withRootObject: CDataArray)
@@ -42,5 +42,23 @@ extension ImageArrayRepresentation {
             print("Unable to convert data to ImageArray")
             return nil
         }
+    }
+}
+
+extension UIImage {
+    func rotateImage() -> UIImage {
+        
+        if (imageOrientation == UIImageOrientation.up ) {
+            return self
+        }
+        
+        UIGraphicsBeginImageContext(size)
+        
+        draw(in: CGRect(origin: CGPoint.zero, size: size))
+        let copy = UIGraphicsGetImageFromCurrentImageContext()
+        
+        UIGraphicsEndImageContext()
+        
+        return copy!
     }
 }

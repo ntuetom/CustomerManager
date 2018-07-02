@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol MyCollectionViewDelegate {
+protocol MyCollectionViewDelegate: AnyObject {
     func deleteButtonClick(AtIndexPath indexPath:IndexPath)
 }
 
@@ -17,11 +17,11 @@ class MyCollectionViewCell: UICollectionViewCell,UIGestureRecognizerDelegate {
     var imageView: UIImageView!
     var titleLabel: UILabel!
     var deleteButton: UIButton!
-    var delegate: MyCollectionViewDelegate!
+    weak var delegate: MyCollectionViewDelegate!
     var isZoom = false
     var originImageCenter:CGPoint?
     var currentImage:UIImageView!
-    var myViewController:UIViewController!
+    weak var myViewController: UIViewController?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -32,6 +32,10 @@ class MyCollectionViewCell: UICollectionViewCell,UIGestureRecognizerDelegate {
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        print("MyCollectionViewCell deinit")
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -87,16 +91,17 @@ class MyCollectionViewCell: UICollectionViewCell,UIGestureRecognizerDelegate {
         currentImage.addGestureRecognizer(pan)
         currentImage.addGestureRecognizer(swipe)
         self.superview?.superview?.addSubview(currentImage)
-        myViewController.navigationController?.isNavigationBarHidden = true
-        myViewController.tabBarController?.tabBar.isHidden = true
+        //viewcon
+        myViewController?.navigationController?.isNavigationBarHidden = true
+        myViewController?.tabBarController?.tabBar.isHidden = true
     }
     
     @objc func dismissFullscreenImage(_ sender: UISwipeGestureRecognizer) {
         print("dismissFullscreenImage")
         if sender.direction == .down {
             print("down")
-            myViewController.navigationController?.isNavigationBarHidden = false
-            myViewController.tabBarController?.tabBar.isHidden = false
+            myViewController?.navigationController?.isNavigationBarHidden = false
+            myViewController?.tabBarController?.tabBar.isHidden = false
             sender.view?.removeFromSuperview()
         }
     }

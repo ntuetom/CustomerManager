@@ -16,19 +16,61 @@ enum CustomerAttribute : String {
     case id = "id"
 }
 
-class DataController:NSObject{
+class DataController: NSObject {
     
-    var manageContext: NSManagedObjectContext
     var customerFetch: NSFetchRequest<NSFetchRequestResult>
-    var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    
+    lazy var persistentContainer: NSPersistentContainer = {
+        /*
+         The persistent container for the application. This implementation
+         creates and returns a container, having loaded the store for the
+         application to it. This property is optional since there are legitimate
+         error conditions that could cause the creation of the store to fail.
+         */
+        let container = NSPersistentContainer(name: "CustomerManager")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                
+                /*
+                 Typical reasons for an error here include:
+                 * The parent directory does not exist, cannot be created, or disallows writing.
+                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
+                 * The device is out of space.
+                 * The store could not be migrated to the current model version.
+                 Check the error message to determine what the actual problem was.
+                 */
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        return container
+    }()
+    
+    // MARK: - Core Data Saving support
+    
+    func saveContext () {
+        let context = persistentContainer.viewContext
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                let nserror = error as NSError
+                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            }
+        }
+    }
+    
     override init() {
-        manageContext = appDelegate.persistentContainer.viewContext
         customerFetch = NSFetchRequest<NSFetchRequestResult>(entityName: "Customer")
         super.init()
     }
     
     func fetchCustomerData( complete: @escaping ( _ success: Bool, _ datas: [CustomerData]?, _ error: String? )->()) {
-        let customers = try! manageContext.fetch(customerFetch) as! [Customer]
+        let context = persistentContainer.viewContext
+        let customers = try! context.fetch(customerFetch) as! [Customer]
     
         var datas:[CustomerData] = []
         print("Customers number: \(customers.count))")
@@ -55,7 +97,8 @@ class DataController:NSObject{
         customerFetch.predicate = nil
         customerFetch.predicate = NSPredicate(format: "id = \(id)")
         do {
-            let results = try manageContext.fetch(customerFetch) as! [Customer]
+            let context = persistentContainer.viewContext
+            let results = try context.fetch(customerFetch) as! [Customer]
             if results.count > 0 {
                 var customdata: CustomerData
                 let custom = results[0]
@@ -74,7 +117,8 @@ class DataController:NSObject{
     }
     
     func readCustomer() -> [CustomerData] {
-        let customers = try! manageContext.fetch(customerFetch) as! [Customer]
+        let context = persistentContainer.viewContext
+        let customers = try! context.fetch(customerFetch) as! [Customer]
         var datas:[CustomerData] = []
         print("Customers number: \(customers.count))")
         if isEmpty() {
@@ -104,7 +148,8 @@ class DataController:NSObject{
             customerFetch.predicate = NSPredicate(format: "id = \(updateID)")
             print("update id \(data.id)")
             do {
-                let results = try manageContext.fetch(customerFetch) as! [Customer]
+                let context = persistentContainer.viewContext
+                let results = try context.fetch(customerFetch) as! [Customer]
                 if results.count > 0 {
                     queue.async {
                         if data.images.coreDataRepresentation() != results[0].photo {
@@ -112,7 +157,7 @@ class DataController:NSObject{
                         } else {
                             self.setCustomerValue(NSobject: results[0], saveData: data, shouldSaveImage: false)
                         }
-                        self.appDelegate.saveContext()
+                        self.saveContext()
                     }
                     
                 }
@@ -120,11 +165,12 @@ class DataController:NSObject{
                 print("Could not fetch. \(error), \(error.userInfo)")
             }
         } else {
-            let entity = NSEntityDescription.entity(forEntityName: "Customer", in: manageContext)
-            let object: NSManagedObject = NSManagedObject(entity: entity!, insertInto: manageContext)
+            let context = persistentContainer.viewContext
+            let entity = NSEntityDescription.entity(forEntityName: "Customer", in: context)
+            let object: NSManagedObject = NSManagedObject(entity: entity!, insertInto: context)
             queue.async {
                 self.setCustomerValue(NSobject: object,saveData: data)
-                self.appDelegate.saveContext()
+                self.saveContext()
             }
         }
         
@@ -144,7 +190,8 @@ class DataController:NSObject{
     
     func isEmpty() -> Bool{
         do {
-            let count = try self.manageContext.count(for: customerFetch)
+            let context = persistentContainer.viewContext
+            let count = try context.count(for: customerFetch)
             print("data numbers \(count)")
             return count == 0 ? true : false
         } catch let err as NSError{
