@@ -84,11 +84,21 @@ class EditDataViewModel {
         
         var photos: [UIImage] = []
         if numberOfImages > 0 {
+            var count = 0
             for photo in saveImages {
+                count += 1
                 guard let image = photo.image else {
                     return
                 }
                 photos.append(image)
+                let file = AppFile(fileName: "image\(count).png")
+                guard let imageRepresentation = UIImagePNGRepresentation(image.rotateImage()) else {
+                    print("Unable to represent image as PNG")
+                    return
+                }
+                if !file.write(data: imageRepresentation) {
+                    print("Path Error")
+                }
             }
         }
         passData = CustomerData(tel: tel, name: name, lastId: customerData.id, currentTime: customerData.date, photos: photos, isNew:false)
