@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import UIKit
 
 enum AppDirectories : String
 {
@@ -123,6 +123,18 @@ extension AppFileStatusChecking {
             return false
         }
     }
+    
+    func exists(file at: String) -> Bool
+    {
+        if FileManager.default.fileExists(atPath: at)
+        {
+            return true
+        }
+        else
+        {
+            return false
+        }
+    }
 }
 
 protocol AppFileSystemMetaData
@@ -169,11 +181,15 @@ protocol AppFileManipulation : AppDirectoryNames
 {
     func writeFile(containing: String, to path: AppDirectories, withName name: String) -> Bool
     
-    func writeFile(containing: Data, to path: AppDirectories, withName name: String) -> Bool
+    func writeFile(containing: Data, to path: String, withName name: String) -> Bool
     
     func readFile(at path: AppDirectories, withName name: String) -> String
     
+    func readFile(at path: String) -> UIImage?
+    
     func deleteFile(at path: AppDirectories, withName name: String) -> Bool
+    
+    func deleteFile(at path: String) -> Bool
     
     func renameFile(at path: AppDirectories, with oldName: String, to newName: String) -> Bool
     
@@ -195,8 +211,8 @@ extension AppFileManipulation
         return FileManager.default.createFile(atPath: filePath, contents: rawData, attributes: nil)
     }
     
-    func writeFile(containing: Data, to path: AppDirectories, withName name: String) -> Bool {
-        let filePath = getURL(for: path).path + "/" + name
+    func writeFile(containing: Data, to path: String, withName name: String) -> Bool {
+        let filePath = path + "/" + name
         return FileManager.default.createFile(atPath: filePath, contents: containing, attributes: nil)
     }
     
@@ -209,10 +225,22 @@ extension AppFileManipulation
         return fileContentsAsString!
     }
     
+    func readFile(at path: String) -> UIImage? {
+        guard let image = UIImage(contentsOfFile: path) else {
+            return nil
+        }
+        return image
+    }
+    
     func deleteFile(at path: AppDirectories, withName name: String) -> Bool
     {
         let filePath = buildFullPath(forFileName: name, inDirectory: path)
         try! FileManager.default.removeItem(at: filePath)
+        return true
+    }
+    
+    func deleteFile(at path: String) -> Bool {
+        try! FileManager.default.removeItem(atPath: path)
         return true
     }
     
@@ -279,7 +307,6 @@ extension AppFileManipulation
 
 class AppFile: AppDirectoryNames, AppFileStatusChecking, AppFileManipulation, AppFileSystemMetaData {
     
-    
     let fileName: String
     
     init(fileName: String)
@@ -297,21 +324,34 @@ class AppFile: AppDirectoryNames, AppFileStatusChecking, AppFileManipulation, Ap
         }
     }
     
-    func write() -> Bool {
-        if exists(file: getURL(for: .Customer)) {
-            return writeFile(containing: "We were talking\nAbout the space\nBetween us all", to: .Customer, withName: fileName)
+    func writeToCustomer(data: Data,path: String) -> Bool {
+        let currentPath = getURL(for: .Customer).path + "/\(path)"
+        if exists(file: currentPath) {
+            return writeFile(containing: data, to: currentPath, withName: fileName)
         } else {
-            createFolder(at: .Customer)
-            return writeFile(containing: "We were talking\nAbout the space\nBetween us all", to: .Customer, withName: fileName)
+            createFolder(at: .Customer,withName: path)
+            return writeFile(containing: data, to: currentPath, withName: fileName)
         }
     }
     
-    func write(data: Data) -> Bool {
-        if exists(file: getURL(for: .Customer)) {
-            return writeFile(containing: data, to: .Customer, withName: fileName)
+    func readCustomer(at path: String) -> UIImage? {
+        let currentPath = getURL(for: .Customer).path + "/\(path)/\(fileName)"
+        if exists(file: currentPath) {
+            return readFile(at: currentPath)
         } else {
-            createFolder(at: .Customer)
-            return writeFile(containing: data, to: .Customer, withName: fileName)
+            return nil
         }
+    }
+
+    func deleteCustomerImage(at path: String) -> Bool {
+        let currentPath = getURL(for: .Customer).path + "/\(path)/\(fileName)"
+        return deleteFile(at: currentPath)
+    }
+    
+    func getNumberOfFiles(at path: String) -> Int {
+        let fileManager = FileManager.default
+        let currentPath = getURL(for: .Customer).path + "/\(path)"
+        let dirContents = try? fileManager.contentsOfDirectory(atPath: currentPath)
+        return dirContents?.count ?? 0
     }
 }

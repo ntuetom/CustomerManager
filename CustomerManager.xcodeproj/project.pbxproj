@@ -25,6 +25,7 @@
 		51B37DC32062387D00DC886F /* MyCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51B37DC22062387D00DC886F /* MyCollectionViewCell.swift */; };
 		51B37DC52066159E00DC886F /* UIViewController_ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51B37DC42066159E00DC886F /* UIViewController_ext.swift */; };
 		51C6B73F208B7FD900DF56FB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51C6B741208B7FD900DF56FB /* Localizable.strings */; };
+		51DB325F20F268BA004D5FB6 /* Date+String_Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51DB325E20F268BA004D5FB6 /* Date+String_Extension.swift */; };
 		B5F8B5A520EA28520080AB86 /* AppFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F8B5A420EA28520080AB86 /* AppFiles.swift */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +65,7 @@
 		51C6B73C208B7F8800DF56FB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		51C6B740208B7FD900DF56FB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		51C6B742208B7FE400DF56FB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		51DB325E20F268BA004D5FB6 /* Date+String_Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+String_Extension.swift"; sourceTree = "<group>"; };
 		B5F8B5A420EA28520080AB86 /* AppFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFiles.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -152,6 +154,7 @@
 				51A5E16B20E25224000EB919 /* Array+Data_Extention.swift */,
 				51B37DC42066159E00DC886F /* UIViewController_ext.swift */,
 				51B37DC22062387D00DC886F /* MyCollectionViewCell.swift */,
+				51DB325E20F268BA004D5FB6 /* Date+String_Extension.swift */,
 				51B37DB8205ED01E00DC886F /* CustomerCell.xib */,
 				51B37DA1205EAC9800DC886F /* LaunchScreen.storyboard */,
 				51B37DA4205EAC9800DC886F /* Info.plist */,
@@ -282,6 +285,7 @@
 				518DDFDD20E36D440046A891 /* Customer.swift in Sources */,
 				51B37DC32062387D00DC886F /* MyCollectionViewCell.swift in Sources */,
 				51B37D98205EAC9700DC886F /* TableViewController.swift in Sources */,
+				51DB325F20F268BA004D5FB6 /* Date+String_Extension.swift in Sources */,
 				518DDFD620E36B750046A891 /* EditDataViewModel.swift in Sources */,
 				516926672079147B00134A67 /* DataController.swift in Sources */,
 				51B37DBB205ED3BC00DC886F /* CustomerCell.swift in Sources */,
@@ -455,7 +459,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = U79L9MP8GY;
+				DEVELOPMENT_TEAM = U9E4UTEYPL;
 				INFOPLIST_FILE = CustomerManager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Studio.CustomerManager;
@@ -470,7 +474,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = U79L9MP8GY;
+				DEVELOPMENT_TEAM = U9E4UTEYPL;
 				INFOPLIST_FILE = CustomerManager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Studio.CustomerManager;

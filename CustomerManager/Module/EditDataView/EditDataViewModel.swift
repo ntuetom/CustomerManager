@@ -9,14 +9,24 @@
 import Foundation
 import UIKit
 
+enum DataChangeType {
+    case text, imageAdd, imageRemove
+}
+
 protocol EditDataDelegate: AnyObject {
-    func onDataChange(newData data: CustomerData)
+    func onDataChange(newData: CustomerData, at key: [Date: Int]?, image: UIImage?, kind: DataChangeType)
 }
 
 class EditDataViewModel {
     
     let dataController: DataController
-    var customerData: CustomerData!
+    var customerData: CustomerData! {
+        didSet {
+            reloadCollectionViewClosure?()
+        }
+    }
+    var currentAddSection: Int = 0
+    var changedImagesKey: [Date] = []
     
     private var saveImages: [UIImageView] = {
         return [UIImageView]()
@@ -54,16 +64,26 @@ class EditDataViewModel {
         self.dataController.fetchDataById(fetchId: id, completion: { [weak self] (data, error) in
             if error == nil {
                 self?.customerData = data
-                guard let images = data?.images else {
-                    print("imgaes are nil")
+                guard let imagedictoinaries = data?.imagesDictionary else {
+                    print("imagesDictionary are nil")
                     return
                 }
+                let firstKey = imagedictoinaries.first?.key
+                guard let images = imagedictoinaries.first?.value else{
+                    print("first imagedictoinaries are nil")
+                    return
+                }
+                if self?.customerData.datePath.count == 0 {
+                    self?.customerData.datePath.append(Date())
+                }
                 for image in images {
+                    //image.key
                     self?.saveImages.append(UIImageView(image: image))
                 }
                 
             } else {
                 self?.customerData = CustomerData(tel: "", name: "", lastId: id)
+                self?.customerData.datePath.append(Date())
                 self?.errorClosure?()
             }
         })
@@ -91,27 +111,36 @@ class EditDataViewModel {
                     return
                 }
                 photos.append(image)
-                let file = AppFile(fileName: "image\(count).png")
-                guard let imageRepresentation = UIImagePNGRepresentation(image.rotateImage()) else {
-                    print("Unable to represent image as PNG")
-                    return
-                }
-                if !file.write(data: imageRepresentation) {
-                    print("Path Error")
-                }
             }
         }
-        passData = CustomerData(tel: tel, name: name, lastId: customerData.id, currentTime: customerData.date, photos: photos, isNew:false)
-        delegate?.onDataChange(newData: passData)
+        passData = CustomerData(tel: tel, name: name, lastId: customerData.id, photos: customerData.imagesDictionary, pathes: customerData.datePath, isNew:false)
+        delegate?.onDataChange(newData: passData, at: nil, image: nil, kind: .text)
         dataUpdateClosure?()
     }
     
-    func updateImages(newImage image: UIImage) {
+    func addImages(newImage image: UIImage) {
+        if !changedImagesKey.contains(customerData.datePath[currentAddSection]) {
+            changedImagesKey.append(customerData.datePath[currentAddSection])
+        }
+        for date in customerData.datePath {
+            if customerData.imagesDictionary[date.toString()] == nil {
+                customerData.imagesDictionary[date.toString()] = [image]
+            } else {
+                customerData.imagesDictionary[date.toString()]?.append(image)
+            }
+        }
         saveImages.append(UIImageView(image: image))
+        let count = customerData.imagesDictionary[customerData.datePath[currentAddSection].toString()]?.count
+        delegate?.onDataChange(newData: customerData, at: [customerData.datePath[currentAddSection] : count!], image: image, kind: .imageAdd)
     }
     
-    func removeImages(at index: Int) {
-        saveImages.remove(at: index)
+    func removeImages(at index: IndexPath) {
+        if !changedImagesKey.contains(customerData.datePath[index.section]) {
+            changedImagesKey.append(customerData.datePath[index.section])
+        }
+        customerData.imagesDictionary[customerData.datePath[index.section].toString()]?.remove(at: index.row - 1)
+        saveImages.remove(at: index.row - 1)
+        delegate?.onDataChange(newData: customerData, at: [customerData.datePath[index.section] : index.row - 1], image: nil, kind: .imageRemove)
     }
     
     func getImage(at index: Int) -> UIImageView {

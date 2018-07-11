@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class TableViewModel {
     
@@ -110,22 +111,22 @@ class TableViewModel {
         }
     }
     
-    func updateData(newData: CustomerData) {
+    func updateData(newData: CustomerData, at key: [Date: Int]?, image: UIImage? = nil, kind: DataChangeType) {
         if numberOfOriginCells <= 0 {
             originCellViewModels.append(CustomerCellViewModel(id: newData.id, nameText: newData.name, telText: newData.tel))
-            dataController.saveCustomer(saveData: newData)
+            dataController.updateCustomer(saveData: newData, atImageKey: key!, image: image!, kind: kind)
         }else {
             var count = 0
             for vm in originCellViewModels {
                 //new data
                 if newData.id > numberOfOriginCells - 1 {
-                    dataController.saveCustomer(saveData: newData)
+                    dataController.updateCustomer(saveData: newData, atImageKey: key!, image: image!, kind: kind)
                     originCellViewModels.append(CustomerCellViewModel(id: newData.id, nameText: newData.name, telText: newData.tel))
                     break
                 }
                 // override old data
                 if newData.id == vm.id {
-                    dataController.saveCustomer(saveData: newData,isNew : false)
+                    dataController.updateCustomer(saveData: newData,atImageKey: key!, image: image!, kind: kind, isNew : false)
                     originCellViewModels[count].nameText = newData.name
                     originCellViewModels[count].telText = newData.tel
                     break

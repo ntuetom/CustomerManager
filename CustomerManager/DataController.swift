@@ -11,8 +11,7 @@ import CoreData
 enum CustomerAttribute : String {
     case telephone = "telephone"
     case name = "name"
-    case time = "time"
-    case photo = "photo"
+    case datePath = "datePath"
     case id = "id"
 }
 
@@ -82,12 +81,7 @@ class DataController: NSObject {
                 print("data name is nil")
                 continue
             }
-            var customdata: CustomerData
-            if let imageArray = custom.photo?.imageArray() {
-                customdata = CustomerData(tel: custom.telephone!, name: name, lastId: Int(custom.id),currentTime:custom.time! as Date, photos: imageArray,isNew: false)
-            } else {
-                customdata = CustomerData(tel: custom.telephone!, name: name, lastId: Int(custom.id),currentTime:custom.time! as Date, isNew: false)
-            }
+            let customdata = CustomerData(tel: custom.telephone!, name: name, lastId: Int(custom.id), isNew: false)
             datas.append(customdata)
         }
         complete(true,datas,nil)
@@ -100,14 +94,34 @@ class DataController: NSObject {
             let context = persistentContainer.viewContext
             let results = try context.fetch(customerFetch) as! [Customer]
             if results.count > 0 {
-                var customdata: CustomerData
+                var customdata: CustomerData!
                 let custom = results[0]
-                if let imageArray = custom.photo?.imageArray() {
-                    customdata = CustomerData(tel: custom.telephone!, name: custom.name!, lastId: Int(custom.id),currentTime:custom.time! as Date, photos: imageArray,isNew: false)
-                } else {
-                    customdata = CustomerData(tel: custom.telephone!, name: custom.name!, lastId: Int(custom.id),currentTime:custom.time! as Date, isNew: false)
+                //get the first Date Images
+                guard let datesPath = custom.datePath else {
+                    completion(nil, "No thid datePath Data")
+                    return
                 }
-                completion(customdata, nil)
+                DispatchQueue.main.async {
+                    if datesPath.count > 0 {
+                        var arrayOfImagesDictionary: ImageDictionary = ImageDictionary()
+                        var arrayOfImages: ImageArray = []
+                        let keyWithName = "\(String(custom.id))"
+                        let dateString = datesPath[datesPath.count - 1].toString()
+                        let path = "\(keyWithName)/\(dateString)"
+                        let file = AppFile(fileName: "")
+                        let imageCount = file.getNumberOfFiles(at: path)
+                        for count in 1...imageCount {
+                            let fileToRead = AppFile(fileName: "image\(count-1).png")
+                            
+                            if let readImage = fileToRead.readCustomer(at: path) {
+                                arrayOfImages.append(readImage)
+                            }
+                        }
+                        arrayOfImagesDictionary[dateString] = arrayOfImages
+                        customdata = CustomerData(tel: custom.telephone!, name: custom.name!, lastId: Int(custom.id), photos: arrayOfImagesDictionary, pathes: custom.datePath!, isNew: false)
+                    }
+                    completion(customdata, nil)
+                }
             } else {
                 completion(nil, "No thid id Data")
             }
@@ -116,75 +130,76 @@ class DataController: NSObject {
         }
     }
     
-    func readCustomer() -> [CustomerData] {
-        let context = persistentContainer.viewContext
-        let customers = try! context.fetch(customerFetch) as! [Customer]
-        var datas:[CustomerData] = []
-        print("Customers number: \(customers.count))")
-        if isEmpty() {
-            return datas
-        }
-        for custom in customers{
-            guard let name = custom.name else{
-                print("data name is nil")
-                continue
-            }
-            var customdata: CustomerData
-            if let imageArray = custom.photo?.imageArray() {
-                customdata = CustomerData(tel: custom.telephone!, name: name, lastId: Int(custom.id),currentTime:custom.time! as Date, photos: imageArray,isNew: false)
-            } else {
-                customdata = CustomerData(tel: custom.telephone!, name: name, lastId: Int(custom.id),currentTime:custom.time! as Date, isNew: false)
-            }
-            datas.append(customdata)
-        }
-        return datas
-    }
-    
-    func saveCustomer(saveData data:CustomerData,isNew new:Bool = true){
-        let queue = DispatchQueue(label: "com.wu.customerManager")
-        if !new {
-            customerFetch.predicate = nil
-            let updateID = data.id
-            customerFetch.predicate = NSPredicate(format: "id = \(updateID)")
-            print("update id \(data.id)")
-            do {
-                let context = persistentContainer.viewContext
-                let results = try context.fetch(customerFetch) as! [Customer]
-                if results.count > 0 {
-                    queue.async {
-                        if data.images.coreDataRepresentation() != results[0].photo {
-                            self.setCustomerValue(NSobject: results[0], saveData: data)
-                        } else {
-                            self.setCustomerValue(NSobject: results[0], saveData: data, shouldSaveImage: false)
-                        }
-                        self.saveContext()
-                    }
-                    
-                }
-            } catch let error as NSError {
-                print("Could not fetch. \(error), \(error.userInfo)")
-            }
-        } else {
-            let context = persistentContainer.viewContext
-            let entity = NSEntityDescription.entity(forEntityName: "Customer", in: context)
-            let object: NSManagedObject = NSManagedObject(entity: entity!, insertInto: context)
-            queue.async {
-                self.setCustomerValue(NSobject: object,saveData: data)
-                self.saveContext()
-            }
-        }
+    func updateCustomer(saveData data: CustomerData, atImageKey keys: [Date: Int], image: UIImage, kind: DataChangeType, isNew new:Bool = true){
         
+        if kind == .imageAdd {
+            //Save to Filemanager
+            let keyWithName = "\(String(data.id))"
+            
+            let dateString = keys.first?.key.toString()
+            let path = "\(keyWithName)/\(dateString)"
+            DispatchQueue.main.async {
+                guard let imageRepresentation = UIImagePNGRepresentation(image.rotateImage()) else {
+                    print("Unable to represent image as PNG")
+                    return
+                }
+                let fileToWrite = AppFile(fileName: "image\(String(describing: keys.first?.value)).png")
+                if !fileToWrite.writeToCustomer(data: imageRepresentation, path: "\(path)") {
+                    print("Add Error")
+                }
+            }
+            
+        } else if kind == .imageRemove {
+            let keyWithName = "\(String(data.id))"
+            let dateString = keys.first?.key.toString()
+            let path = "\(keyWithName)/\(dateString)"
+            DispatchQueue.main.async {
+                let fileToWrite = AppFile(fileName: "image\(String(describing: keys.first?.value)).png")
+                if !fileToWrite.deleteCustomerImage(at: path) {
+                    print("Delete Error")
+                }
+            }
+        } else if kind == .text {
+            // Save To CoreData
+            //let queue = DispatchQueue(label: "com.wu.customerManager")
+            if !new {
+                customerFetch.predicate = nil
+                let updateID = data.id
+                customerFetch.predicate = NSPredicate(format: "id = \(updateID)")
+                print("update id \(data.id)")
+                do {
+                    let context = persistentContainer.viewContext
+                    let results = try context.fetch(customerFetch) as! [Customer]
+                    if results.count > 0 {
+                        //queue.async {
+                        DispatchQueue.main.async {
+                            self.setCustomerValue(NSobject: results[0], saveData: data)
+                            self.saveContext()
+                        }
+                        
+                    }
+                } catch let error as NSError {
+                    print("Could not fetch. \(error), \(error.userInfo)")
+                }
+            } else {
+                let context = persistentContainer.viewContext
+                let entity = NSEntityDescription.entity(forEntityName: "Customer", in: context)
+                let object: NSManagedObject = NSManagedObject(entity: entity!, insertInto: context)
+                //queue.async {
+                DispatchQueue.main.async {
+                    self.setCustomerValue(NSobject: object,saveData: data)
+                    self.saveContext()
+                }
+            }
+        }
     
     }
     
-    func setCustomerValue(NSobject: NSManagedObject, saveData data:CustomerData, shouldSaveImage: Bool = true){
+    func setCustomerValue(NSobject: NSManagedObject, saveData data:CustomerData){
         print("new id \(data.id)")
         NSobject.setValue(data.name, forKey: CustomerAttribute.name.rawValue)
         NSobject.setValue(data.id, forKey: CustomerAttribute.id.rawValue)
-        NSobject.setValue(data.date, forKey: CustomerAttribute.time.rawValue)
-        if shouldSaveImage {
-            NSobject.setValue(data.images.coreDataRepresentation(), forKey: CustomerAttribute.photo.rawValue)
-        }
+        //NSobject.setValue(data.datePath, forKey: CustomerAttribute.datePath.rawValue)
         NSobject.setValue(data.tel, forKey: CustomerAttribute.telephone.rawValue)
     }
     

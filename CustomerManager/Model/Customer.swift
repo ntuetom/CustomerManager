@@ -7,27 +7,26 @@
 //
 import UIKit
 
+typealias ImageDictionary = [String: [UIImage]]
+
 struct CustomerData {
     
-    init(tel t:String,name n:String,lastId myid:Int,currentTime mydate:Date = Date(),photos: [UIImage] = [],isNew new:Bool = true) {
+    init(tel t:String,name n:String,lastId myid:Int, photos: ImageDictionary = ImageDictionary(), pathes: [Date] = [],isNew new:Bool = true) {
         tel = t
         name = n
-        images = photos
-        date = mydate
-        //if new{
-            id = myid + 1
-        //}else{
-            id = myid
-        //}
+        imagesDictionary = photos
+        datePath = pathes
+        id = myid
     }
     
     var id : Int
     var tel:String
     var name:String
-    var date:Date
-    var images:[UIImage]
+    var imagesDictionary: ImageDictionary
+    var datePath: [Date]
     
-    mutating func appendImage(newImag img:UIImage){
-        images.append(img)
+    mutating func appendImage(at keyDate: String, newImag img:UIImage){
+        //images.append(img)
+        
     }
 }

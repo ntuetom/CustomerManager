@@ -36,12 +36,6 @@ class EditDataViewController: UIViewController, MyCollectionViewDelegate{
         setUpCollectionLayout()
         
         let title = "Done"
-        
-        DispatchQueue.main.async {
-            let data = self.viewModel.customerData
-            self.namefield.text = data?.name
-            self.telfield.text = data?.tel
-        }
 
         barButton = UIBarButtonItem(title: title, style: .plain, target: self, action: #selector(onBarButtonClick))
         self.navigationItem.setRightBarButton(barButton, animated: true)
@@ -58,6 +52,8 @@ class EditDataViewController: UIViewController, MyCollectionViewDelegate{
             self?.navigationController?.popViewController(animated: true)
         }
         viewModel.reloadCollectionViewClosure = { [weak self] () in
+            self?.namefield.text = self?.viewModel.customerData.name
+            self?.telfield.text = self?.viewModel.customerData.tel
             self?.collectionView.reloadData()
         }
         viewModel.errorClosure = { [weak self] () in
@@ -143,7 +139,7 @@ class EditDataViewController: UIViewController, MyCollectionViewDelegate{
         let alert = UIAlertController(title: "Delete Photo", message: "Are you sure you want to delete the picture?", preferredStyle: .alert)
         let confirmAtion = UIAlertAction(title: "Confirm", style: .destructive){
             UIAlertAction in
-            self.viewModel.removeImages(at: (indexPath.row - 1))
+            self.viewModel.removeImages(at: indexPath)
             self.collectionView.reloadData()
         }
         alert.addAction(confirmAtion)
@@ -198,6 +194,7 @@ extension EditDataViewController: UICollectionViewDelegate, UICollectionViewData
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
         print("你選擇了第 \(indexPath.section + 1) 組的")
+        viewModel.currentAddSection = indexPath.section
         print("第 \(indexPath.item + 1) 張圖片")
         if indexPath.item == 0 {
             let alert = UIAlertController(title: "Take Photo", message: "Let's take a Photo from your Library or Camera!", preferredStyle: .actionSheet)
@@ -237,7 +234,7 @@ extension EditDataViewController: UICollectionViewDelegate, UICollectionViewData
 extension EditDataViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         let image = info[UIImagePickerControllerOriginalImage] as! UIImage
-        viewModel.updateImages(newImage: image)
+        viewModel.addImages(newImage: image)
         collectionView.reloadData()
         dismiss(animated:true, completion: nil)
     }
