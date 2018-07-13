@@ -130,77 +130,113 @@ class DataController: NSObject {
         }
     }
     
-    func updateCustomer(saveData data: CustomerData, atImageKey keys: [Date: Int], image: UIImage, kind: DataChangeType, isNew new:Bool = true){
+    func updateCustomer(saveData data: CustomerData, atImageKey key: Date?, image: UIImage?, kind: DataChangeType, isNew new:Bool = true){
         
-        if kind == .imageAdd {
-            //Save to Filemanager
-            let keyWithName = "\(String(data.id))"
-            
-            let dateString = keys.first?.key.toString()
-            let path = "\(keyWithName)/\(dateString)"
-            DispatchQueue.main.async {
-                guard let imageRepresentation = UIImagePNGRepresentation(image.rotateImage()) else {
-                    print("Unable to represent image as PNG")
-                    return
-                }
-                let fileToWrite = AppFile(fileName: "image\(String(describing: keys.first?.value)).png")
-                if !fileToWrite.writeToCustomer(data: imageRepresentation, path: "\(path)") {
-                    print("Add Error")
-                }
-            }
-            
-        } else if kind == .imageRemove {
-            let keyWithName = "\(String(data.id))"
-            let dateString = keys.first?.key.toString()
-            let path = "\(keyWithName)/\(dateString)"
-            DispatchQueue.main.async {
-                let fileToWrite = AppFile(fileName: "image\(String(describing: keys.first?.value)).png")
-                if !fileToWrite.deleteCustomerImage(at: path) {
-                    print("Delete Error")
-                }
-            }
-        } else if kind == .text {
+        if kind == .text {
             // Save To CoreData
             //let queue = DispatchQueue(label: "com.wu.customerManager")
-            if !new {
-                customerFetch.predicate = nil
-                let updateID = data.id
-                customerFetch.predicate = NSPredicate(format: "id = \(updateID)")
-                print("update id \(data.id)")
-                do {
-                    let context = persistentContainer.viewContext
-                    let results = try context.fetch(customerFetch) as! [Customer]
-                    if results.count > 0 {
-                        //queue.async {
-                        DispatchQueue.main.async {
-                            self.setCustomerValue(NSobject: results[0], saveData: data)
-                            self.saveContext()
-                        }
-                        
-                    }
-                } catch let error as NSError {
-                    print("Could not fetch. \(error), \(error.userInfo)")
+            writeToCoreData(saveData: data, kind: kind, isNew: new)
+            
+        } else {
+            let checkFile = AppFile(fileName: "")
+            let keyWithName = "\(String(data.id))"
+            guard let key = key else {
+                print("key date is nil")
+                return
+            }
+
+            guard let updateImage = image else {
+                print("image is nil")
+                return
+            }
+            let dateString = key.toString()
+            let path = "\(keyWithName)/\(dateString)"
+            let fileCount = checkFile.getNumberOfFiles(at: path)
+            if kind == .imageAdd {
+                if fileCount == 0 {
+                    //add datePath
+                    writeToCoreData(saveData: data, date: key, kind: kind, isNew: new)
                 }
-            } else {
-                let context = persistentContainer.viewContext
-                let entity = NSEntityDescription.entity(forEntityName: "Customer", in: context)
-                let object: NSManagedObject = NSManagedObject(entity: entity!, insertInto: context)
-                //queue.async {
+                
+                //Save to Filemanager
                 DispatchQueue.main.async {
-                    self.setCustomerValue(NSobject: object,saveData: data)
-                    self.saveContext()
+                    guard let imageRepresentation = UIImagePNGRepresentation(updateImage.rotateImage()) else {
+                        print("Unable to represent image as PNG")
+                        return
+                    }
+                    let fileToWrite = AppFile(fileName: "image\(fileCount).png")
+                    if !fileToWrite.writeToCustomer(data: imageRepresentation, path: "\(path)") {
+                        print("Add Error")
+                    }
+                }
+                
+            } else if kind == .imageRemove {
+                if fileCount == 1 {
+                    //delete datePath
+                    writeToCoreData(saveData: data, date: key, kind: kind, isNew: new)
+                }
+                
+                //delete from Filemanager
+                DispatchQueue.main.async {
+                    let fileToWrite = AppFile(fileName: "image\(fileCount).png")
+                    if !fileToWrite.deleteCustomerImage(at: path) {
+                        print("Delete Error")
+                    }
                 }
             }
+            
         }
     
     }
     
-    func setCustomerValue(NSobject: NSManagedObject, saveData data:CustomerData){
+    func writeToCoreData(saveData data: CustomerData, date: Date = Date(), kind: DataChangeType, isNew new: Bool = true) {
+        if !new {
+            customerFetch.predicate = nil
+            let updateID = data.id
+            customerFetch.predicate = NSPredicate(format: "id = \(updateID)")
+            print("update id \(data.id)")
+            do {
+                let context = persistentContainer.viewContext
+                let results = try context.fetch(customerFetch) as! [Customer]
+                if results.count > 0 {
+                    //queue.async {
+                    DispatchQueue.main.async {
+                        self.setCustomerValue(NSobject: results[0], saveData: data, saveType: kind)
+                        self.saveContext()
+                    }
+                    
+                }
+            } catch let error as NSError {
+                print("Could not fetch. \(error), \(error.userInfo)")
+            }
+        } else {
+            let context = persistentContainer.viewContext
+            let entity = NSEntityDescription.entity(forEntityName: "Customer", in: context)
+            let object: NSManagedObject = NSManagedObject(entity: entity!, insertInto: context)
+            //queue.async {
+            DispatchQueue.main.async {
+                self.setCustomerValue(NSobject: object,saveData: data, saveType: kind)
+                self.saveContext()
+            }
+        }
+    }
+    
+    func setCustomerValue(NSobject: NSManagedObject, date: Date = Date(), saveData data: CustomerData, saveType kind: DataChangeType){
         print("new id \(data.id)")
-        NSobject.setValue(data.name, forKey: CustomerAttribute.name.rawValue)
-        NSobject.setValue(data.id, forKey: CustomerAttribute.id.rawValue)
-        //NSobject.setValue(data.datePath, forKey: CustomerAttribute.datePath.rawValue)
-        NSobject.setValue(data.tel, forKey: CustomerAttribute.telephone.rawValue)
+        var myData = data
+       
+        if kind == .imageAdd {
+            NSobject.setValue(data.datePath, forKey: CustomerAttribute.datePath.rawValue)
+            myData.datePath.append(date)
+        } else if kind == .imageRemove {
+            NSobject.setValue(myData.datePath, forKey: CustomerAttribute.datePath.rawValue)
+            let index = myData.datePath.index(of: date)
+            myData.datePath.remove(at: index!)
+        } else {
+            NSobject.setValue(myData.name, forKey: CustomerAttribute.name.rawValue)
+            NSobject.setValue(myData.id, forKey: CustomerAttribute.id.rawValue)
+            NSobject.setValue(myData.tel, forKey: CustomerAttribute.telephone.rawValue)
+        }
     }
     
     func isEmpty() -> Bool{

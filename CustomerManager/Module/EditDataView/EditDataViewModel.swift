@@ -14,7 +14,7 @@ enum DataChangeType {
 }
 
 protocol EditDataDelegate: AnyObject {
-    func onDataChange(newData: CustomerData, at key: [Date: Int]?, image: UIImage?, kind: DataChangeType)
+    func onDataChange(newData: CustomerData, at key: Date?, image: UIImage?, kind: DataChangeType)
 }
 
 class EditDataViewModel {
@@ -130,8 +130,7 @@ class EditDataViewModel {
             }
         }
         saveImages.append(UIImageView(image: image))
-        let count = customerData.imagesDictionary[customerData.datePath[currentAddSection].toString()]?.count
-        delegate?.onDataChange(newData: customerData, at: [customerData.datePath[currentAddSection] : count!], image: image, kind: .imageAdd)
+        delegate?.onDataChange(newData: customerData, at: customerData.datePath[currentAddSection], image: image, kind: .imageAdd)
     }
     
     func removeImages(at index: IndexPath) {
@@ -140,7 +139,7 @@ class EditDataViewModel {
         }
         customerData.imagesDictionary[customerData.datePath[index.section].toString()]?.remove(at: index.row - 1)
         saveImages.remove(at: index.row - 1)
-        delegate?.onDataChange(newData: customerData, at: [customerData.datePath[index.section] : index.row - 1], image: nil, kind: .imageRemove)
+        delegate?.onDataChange(newData: customerData, at: customerData.datePath[index.section], image: nil, kind: .imageRemove)
     }
     
     func getImage(at index: Int) -> UIImageView {

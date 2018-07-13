@@ -73,7 +73,7 @@ class TableViewController: UIViewController, EditDataDelegate {
         viewModel.initFetch()
     }
     
-    func onDataChange(newData: CustomerData, at key: [Date: Int]? , image: UIImage?, kind: DataChangeType) {
+    func onDataChange(newData: CustomerData, at key: Date? , image: UIImage?, kind: DataChangeType) {
         viewModel.updateData(newData: newData, at: key, image: image,kind: kind)
     }
     
